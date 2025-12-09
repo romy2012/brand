@@ -146,8 +146,8 @@ $title_array .= "}";
 		obj :null,
 		init :function(o, oRoot, minX, maxX, minY, maxY, bSwapHorzRef, bSwapVertRef, fXMapper, fYMapper){
 			o.onmousedown	= Drag.start;
-			o.hmode			= bSwapHorzRef ? false :true ;
-			o.vmode			= bSwapVertRef ? false :true ;
+			o.hmode		= bSwapHorzRef ? false :true ;
+			o.vmode		= bSwapVertRef ? false :true ;
 			o.root = oRoot && oRoot != null ? oRoot :o ;
 
 			if (o.hmode  && isNaN(parseInt(o.root.style.left  ))) o.root.style.left   = "0px";
@@ -168,7 +168,7 @@ $title_array .= "}";
 			o.root.onDrag		= new Function();
 		},
 
-		start :function(e)	{
+		start :function(e) {
 			var o = Drag.obj = this;
 			e = Drag.fixE(e);
 			var y = parseInt(o.vmode ? o.root.style.top  :o.root.style.bottom);
@@ -178,16 +178,16 @@ $title_array .= "}";
 			o.lastMouseY	= e.clientY;
 
 			if (o.hmode) {
-				if (o.minX != null)	o.minMouseX	= e.clientX - x + o.minX;
-				if (o.maxX != null)	o.maxMouseX	= o.minMouseX + o.maxX - o.minX;
+				if (o.minX != null) o.minMouseX	= e.clientX - x + o.minX;
+				if (o.maxX != null) o.maxMouseX	= o.minMouseX + o.maxX - o.minX;
 			} else {
 				if (o.minX != null) o.maxMouseX = -o.minX + e.clientX + x;
 				if (o.maxX != null) o.minMouseX = -o.maxX + e.clientX + x;
 			}
 
 			if (o.vmode) {
-				if (o.minY != null)	o.minMouseY	= e.clientY - y + o.minY;
-				if (o.maxY != null)	o.maxMouseY	= o.minMouseY + o.maxY - o.minY;
+				if (o.minY != null) o.minMouseY	= e.clientY - y + o.minY;
+				if (o.maxY != null) o.maxMouseY	= o.minMouseY + o.maxY - o.minY;
 			} else {
 				if (o.minY != null) o.maxMouseY = -o.minY + e.clientY + y;
 				if (o.maxY != null) o.minMouseY = -o.maxY + e.clientY + y;
@@ -215,8 +215,8 @@ $title_array .= "}";
 			nx = x + ((ex - o.lastMouseX) * (o.hmode ? 1 :-1));
 			ny = y + ((ey - o.lastMouseY) * (o.vmode ? 1 :-1));
 
-			if (o.xMapper)		nx = o.xMapper(y)
-			else if (o.yMapper)	ny = o.yMapper(x)
+			if (o.xMapper) 	nx = o.xMapper(y)
+			else if (o.yMapper) ny = o.yMapper(x)
 
 			Drag.obj.root.style[o.hmode ? "left" :"right"] = nx + "px";
 			Drag.obj.root.style[o.vmode ? "top" :"bottom"] = ny + "px";
@@ -229,8 +229,8 @@ $title_array .= "}";
 		end :function(){
 			document.onmousemove = null;
 			document.onmouseup   = null;
-			Drag.obj.root.onDragEnd(	parseInt(Drag.obj.root.style[Drag.obj.hmode ? "left" :"right"]), 
-										parseInt(Drag.obj.root.style[Drag.obj.vmode ? "top" :"bottom"]));
+			Drag.obj.root.onDragEnd( parseInt(Drag.obj.root.style[Drag.obj.hmode ? "left" :"right"]), 
+							parseInt(Drag.obj.root.style[Drag.obj.vmode ? "top" :"bottom"]));
 			Drag.obj = null;
 		},
 		fixE :function(e){
@@ -256,7 +256,7 @@ $title_array .= "}";
 	echo $colors_text;
 	?>;
 	titles = <?=$title_array?>;
-	type_array = [<? echo "'$type_array[0]'";for($i = 1;$i < $num_types;$i++) echo ", '$type_array[$i]'";?>];
+	type_array = [<? echo "'".str_replace("'","\\'",$type_array[0])."'";for($i = 1;$i < $num_types;$i++) echo ", '".str_replace("'","\\'",$type_array[$i])."'";?>];
 	num_days = <?=$day_count?>;
 	num_types = <?=$num_types?>;
 
@@ -278,9 +278,9 @@ $title_array .= "}";
 		loading 	= document.getElementById("loading");
 		visited		= new Array();
 		max_days	= 10;
-	    root.style.height = (num_types * 20 + 1) + "px";
+    	root.style.height = (num_types * 20 + 1) + "px";
 		root.style.width = (num_days * 20 + 1) + "px";
-	    titlediv.style.top = (100 + num_types * 20) + 'px';
+    	titlediv.style.top = (100 + num_types * 20) + 'px';
 		curr_day = "0000-00-00";
 		digits = new Array();
 		for (i = 0;i < 10;i++){
@@ -289,14 +289,6 @@ $title_array .= "}";
 		}
 		window.onresize = getHeight;
 		getHeight();
-	}
-
-	function handleKeyDown(e){
-		if (document.all)
-			alert(window.event.keyCode)
-		else
-			alert(e.which);
-		return false;
 	}
 
 	function getHeight(){
@@ -425,7 +417,7 @@ $title_array .= "}";
 	function unselect(){
 		typediv.style.top = "-100px";
 		titlediv.style.top = "-100px";
-		daydiv.style.top = "-100px";	
+		daydiv.style.top = "-100px";    
 		topdiv.style.top = "-1px";
 		bottom.style.top = "-1px";
 		left.style.left = "-1px";
@@ -436,9 +428,12 @@ $title_array .= "}";
 		var t = document.getElementById(target);
 		
 		if (current != target){
-			if (visited[target] != true)
-			parent.frames[0].location = "load.php?id=" + id + "&cell=" + target;
-			busy = true;
+			if (visited[target] != true) {
+				// fetch structured data and render into the cell
+				busy = true;
+				fetchLoad(id, target);
+				return;
+			}
 			curr_type = getj(target);
 			current = target;
 			select(current, curr_type, curr_day);
@@ -468,7 +463,7 @@ $title_array .= "}";
 					document.getElementById("row_" + i + "_" + getj(target)).style.top = (parseInt(t.style.height) + 1) + "px";
 			setTimeout("openCell('" + target + "', " + id + ")", 20);
 		}
-		else if (close.style.top != (gety(target) + 5) + "px")	{
+		else if (close.style.top != (gety(target) + 5) + "px")    {
 			close.style.top = (gety(target) + 5) + "px";
 			close.style.left = (getx(target) + parseInt(t.style.width) - 16) + "px";
 			if (visited[target] != true)
@@ -492,16 +487,16 @@ $title_array .= "}";
 				scrollTravel = scrolldiv.maxY - scrolldiv.minY;
 				ratio = (t.firstChild.offsetHeight - 235) / scrollTravel;
 				scrolldiv.onDrag = function(x, y) {
-				scrolldiv.style.backgroundColor = "#FFF";
-				t.firstChild.style.top = (20 - Math.round((y - scrolldiv.minY) * ratio)) + "px";
-				}
+			scrolldiv.style.backgroundColor = "#FFF";
+			t.firstChild.style.top = (20 - Math.round((y - scrolldiv.minY) * ratio)) + "px";
+			}
 				scrolldiv.onDragStart = function() {
-					close_click = false;
-					scrolldiv.style.backgroundColor = "#FFF";
-				}
+				close_click = false;
+				scrolldiv.style.backgroundColor = "#FFF";
+			}
 				scrolldiv.onDragEnd = function() {
-					scrolldiv.style.backgroundColor = "";
-				}
+				scrolldiv.style.backgroundColor = "";
+			}
 			}
 			busy = false;
 			unselect();
@@ -509,9 +504,78 @@ $title_array .= "}";
 		}
 	}
 
+	function fetchLoad(id, target) {
+		fetch('load.php?id=' + encodeURIComponent(id))
+			.then(function(response) {
+				if (!response.ok) throw new Error('Network response was not ok');
+				return response.json();
+			})
+			.then(function(data) {
+				var t = document.getElementById(target);
+				if (!t) { busy = false; return; }
+				var doc = document;
+				var content = doc.createElement('div');
+				content.style.position = 'absolute';
+				content.style.font = '12px Arial, Helvetica, sans-serif';
+				content.style.color = '#FFF';
+				content.style.left = '17px';
+				content.style.top = '20px';
+				content.style.width = '225px';
+				content.style.height = '220px';
+				content.style.cursor = 'default';
+				content.style.visibility = 'hidden';
+				content.style.border = '0px #FFF solid';
+
+				// Render entries
+				if (data.entries && Array.isArray(data.entries)) {
+					data.entries.forEach(function(entry) {
+						entry.paras.forEach(function(p) {
+							var para = doc.createElement('p');
+							para.style.lineHeight = '18px';
+							para.style.color = '#FFF';
+							para.style.marginTop = '0px';
+							para.style.marginBottom = '10px';
+							para.style.textAlign = 'justify';
+							para.style.textJustify = 'distribute';
+							para.style.wordBreak = 'break-all';
+							para.style.wordWrap = 'break-word';
+							if (p.text)
+								para.appendChild(doc.createTextNode(p.text));
+							if (p.images && Array.isArray(p.images)) {
+								p.images.forEach(function(img) {
+									var anchor = doc.createElement('a');
+									anchor.href = img.url;
+									anchor.target = '_blank';
+									var image = doc.createElement('img');
+									image.src = img.display;
+									image.style.width = '225px';
+									image.style.height = '220px';
+									image.style.border = '0px';
+									image.style.margin = '0px';
+									anchor.appendChild(image);
+									para.appendChild(anchor);
+								});
+							}
+							content.appendChild(para);
+						});
+					});
+				}
+
+				t.appendChild(content);
+				visited[target] = true;
+				// Continue opening animation/logic
+				openCell(target, id);
+			})
+			.catch(function(err) {
+				console.error('Failed to load cell data', err);
+				busy = false;
+				visited[target] = true;
+			});
+	}
+
 	function closeCell(target, callback){
 		var t = document.getElementById(target);
-		if (busy == false)	{
+		if (busy == false)    {
 			busy = true;
 			if (callback != "")
 				unselect();
@@ -523,7 +587,7 @@ $title_array .= "}";
 		else if (parseInt(t.style.height) > 20){
 			var row = document.getElementById("row_" + geti(target) + "_" + getj(target));
 			t.style.height = (parseInt(t.style.height) - 40) + "px";
-			if (callback == "")	{
+			if (callback == "")    {
 				bottom.style.top = (gety(target) + parseInt(t.style.height)) + "px";
 				titlediv.style.top = (80 + num_types * 20 + parseInt(t.style.height)) + "px";
 			}
@@ -534,11 +598,11 @@ $title_array .= "}";
 					document.getElementById("row_" + i + "_" + getj(target)).style.top = (parseInt(t.style.height) + 1) + "px";
 			setTimeout("closeCell('" + target + "', '" + callback + "')", 20);
 		}
-		else if (parseInt(t.style.width) > 20)	{
+		else if (parseInt(t.style.width) > 20)    {
 			
 			var col = document.getElementById("col_" + geti(target));
 			t.style.width = (parseInt(t.style.width) - 40) + "px";
-			if (callback == "")	{
+			if (callback == "")    {
 				right.style.left = (getx(target) + parseInt(t.style.width)) + "px";
 				titlediv.style.left = right.style.left;
 			}
@@ -548,7 +612,7 @@ $title_array .= "}";
 		}
 		else{
 			t.style.cursor = "pointer";
-			if (callback == "")	{
+			if (callback == "")    {
 				busy = false;
 				unselect();
 				current = "none";

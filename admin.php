@@ -1,22 +1,39 @@
 <?php include("setup.php"); ?>
 <?php
 $conn = db_connect(); // Establish a connection and store it in $conn
-extract($_REQUEST);
-extract($_SERVER);
 
-if ($task != "submit") {
-    if (isset($id)) {
-        $id = (int) $id; // Ensure $id is an integer
-        $entry_query = mysqli_query($conn, "SELECT * FROM blog WHERE id=$id");
-        $entry = mysqli_fetch_array($entry_query);
-        $title = $entry['title'];
-        $type = $entry['type'];
-        $date = $entry['posted_date'];
-        $time = $entry['posted_time'];
-        $content = $entry['content'];
-        $user_query = mysqli_query($conn, "SELECT * FROM blog_users WHERE id={$entry['author']}");
-        $user = mysqli_fetch_array($user_query);
-        $login = $user['login'];
+// Explicitly read inputs instead of using extract()
+$task = isset($_REQUEST['task']) ? $_REQUEST['task'] : '';
+
+if ($task !== "submit") {
+    $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
+    $title = '';
+    $type = '';
+    $date = '';
+    $time = '';
+    $content = '';
+    $login = '';
+
+    if ($id) {
+        $stmt = mysqli_prepare($conn, "SELECT * FROM blog WHERE id = ?");
+        mysqli_stmt_bind_param($stmt, 'i', $id);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $entry = mysqli_fetch_assoc($result);
+        if ($entry) {
+            $title = $entry['title'];
+            $type = $entry['type'];
+            $date = $entry['posted_date'];
+            $time = $entry['posted_time'];
+            $content = $entry['content'];
+
+            $stmt2 = mysqli_prepare($conn, "SELECT * FROM blog_users WHERE id = ?");
+            mysqli_stmt_bind_param($stmt2, 'i', $entry['author']);
+            mysqli_stmt_execute($stmt2);
+            $res2 = mysqli_stmt_get_result($stmt2);
+            $user = mysqli_fetch_assoc($res2);
+            if ($user) $login = $user['login'];
+        }
     }
     ?>
     <!doctype html>
@@ -43,10 +60,10 @@ if ($task != "submit") {
     </style>
     </head>
     <body>
-    <form action="<?php echo $_SERVER['REQUEST_URI'];?>" method="post">
-    <?php if (isset($id)) { ?>
-    <input type="hidden" name="id" value="<?php echo $id; ?>">
-    <input type="hidden" name="login" value="<?php echo $login; ?>">
+    <form action="<?php echo htmlspecialchars($_SERVER['REQUEST_URI'], ENT_QUOTES, 'UTF-8'); ?>" method="post">
+    <?php if ($id) { ?>
+    <input type="hidden" name="id" value="<?php echo (int)$id; ?>">
+    <input type="hidden" name="login" value="<?php echo htmlspecialchars($login, ENT_QUOTES, 'UTF-8'); ?>">
     <?php } ?>
     <input type="hidden" name="task" value="submit">
     <table cellspacing="0" cellpadding="0" border="0" width="100%">
@@ -62,7 +79,7 @@ if ($task != "submit") {
     <tr>
     <td class="normal">
     企业全称：<br>
-    <input type="text" name="title" class="normal" size="48"<?php if (isset($id)) echo " value=\"$title\"";?>>
+    <input type="text" name="title" class="normal" size="48"<?php if ($id) echo ' value="'.htmlspecialchars($title, ENT_QUOTES, 'UTF-8').'"';?>>
     </td>
     </tr>
     </table>
@@ -72,27 +89,29 @@ if ($task != "submit") {
     企业分类：<br>
     <select name="topic" class="normal">
     <?php
-    $topic_query = mysqli_query($conn, "SELECT * FROM blog_setup");
-    while ($topic = mysqli_fetch_array($topic_query)) {
-        $selected = (isset($id) && $type == $topic['id']) ? " selected" : "";
-        echo "<option value=\"{$topic['id']}\"$selected>{$topic['name']}</option>\n";
+    $topic_stmt = mysqli_prepare($conn, "SELECT id, name FROM blog_setup ORDER BY id");
+    mysqli_stmt_execute($topic_stmt);
+    $topic_res = mysqli_stmt_get_result($topic_stmt);
+    while ($topic_row = mysqli_fetch_assoc($topic_res)) {
+        $selected = ($id && $type == $topic_row['id']) ? ' selected' : '';
+        echo "<option value=\"".htmlspecialchars($topic_row['id'], ENT_QUOTES,'UTF-8')."\"$selected>".htmlspecialchars($topic_row['name'], ENT_QUOTES,'UTF-8')."</option>\n";
     }
     ?>
     </select>
     </td>
     <td class="normal">
     登记日期：<br>
-    <input type="text" name="date" class="normal" size="12" value="<?php if (isset($id)) echo $date; else echo date('Y-m-d'); ?>">
+    <input type="text" name="date" class="normal" size="12" value="<?php if ($id) echo htmlspecialchars($date, ENT_QUOTES, 'UTF-8'); else echo date('Y-m-d'); ?>">
     </td>
     <td class="normal">
     登记时间：<br>
-    <input type="text" name="time" class="normal" size="12" value="<?php if (isset($id)) echo $time; else echo date('H:i'); ?>">
+    <input type="text" name="time" class="normal" size="12" value="<?php if ($id) echo htmlspecialchars($time, ENT_QUOTES, 'UTF-8'); else echo date('H:i'); ?>">
     </td>
     </tr>
     <tr>
     <td class="normal" colspan="3">
     投放代码：<br>
-    <textarea name="content" class="normal" cols="50" rows="8"><?php if (isset($id)) echo $content; ?></textarea>
+    <textarea name="content" class="normal" cols="50" rows="8"><?php if ($id) echo htmlspecialchars($content, ENT_QUOTES, 'UTF-8'); ?></textarea>
     </td>
     </tr>
     </table>
@@ -100,7 +119,7 @@ if ($task != "submit") {
     <tr>
     <td class="normal">
     授权登记：<br>
-    <input type="text" name="login<?php if (isset($id)) echo "_disabled";?>" class="normal" size="20"<?php if (isset($id)) echo " value=\"$login\" disabled"; ?>>
+    <input type="text" name="login_disabled" class="normal" size="20"<?php if ($id) echo " value=\"".htmlspecialchars($login, ENT_QUOTES, 'UTF-8')."\" disabled"; ?>>
     </td>
     <td class="normal">                    
     授权密码：<br>
@@ -118,13 +137,15 @@ if ($task != "submit") {
     <td width="5%"></td>
     <td valign="top" class="normal" width="40%">
     <img src="images/blank.gif" width="1" height="40"><br>
-    <em><a href="<?php echo $_SERVER['PHP_SELF']; ?>">新增</a></em><br>
+    <em><a href="<?php echo htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8'); ?>">新增</a></em><br>
     <em>修改：</em>
     <ol>
     <?php
-    $entry_query = mysqli_query($conn, "SELECT * FROM blog");
-    while ($entry = mysqli_fetch_array($entry_query)) {
-        echo "<li><a href=\"{$_SERVER['PHP_SELF']}?id={$entry['id']}\">{$entry['title']}</a></li>\n";
+    $entry_stmt = mysqli_prepare($conn, "SELECT id, title FROM blog ORDER BY posted_date DESC");
+    mysqli_stmt_execute($entry_stmt);
+    $entry_res = mysqli_stmt_get_result($entry_stmt);
+    while ($entry_row = mysqli_fetch_assoc($entry_res)) {
+        echo "<li><a href=\"" . htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8') . "?id=" . (int)$entry_row['id'] . "\">" . htmlspecialchars($entry_row['title'], ENT_QUOTES, 'UTF-8') . "</a></li>\n";
     }
     ?>
     </ol>
@@ -140,31 +161,70 @@ if ($task != "submit") {
 
     <?php
 } else {
-    $login = mysqli_real_escape_string($conn, $login);
-    $password = mysqli_real_escape_string($conn, $password);
-    $user_query = mysqli_query($conn, "SELECT * FROM blog_users WHERE login='$login' OR email='$login'");
-    $validated = false;
-    if (mysqli_num_rows($user_query) > 0) {
-        $user = mysqli_fetch_array($user_query);
-        if (md5($password) == $user['password']) {
-            $content = mysqli_real_escape_string($conn, $content);
-            $title = mysqli_real_escape_string($conn, $title);
-            $date = mysqli_real_escape_string($conn, $date);
-            $time = mysqli_real_escape_string($conn, $time);
-            $topic = (int) $topic;
+    // Handle submission securely
+    $id = isset($_POST['id']) ? (int)$_POST['id'] : null;
+    $login = isset($_POST['login']) ? $_POST['login'] : (isset($_POST['login_disabled']) ? $_POST['login_disabled'] : '');
+    $password = isset($_POST['password']) ? $_POST['password'] : '';
+    $title = isset($_POST['title']) ? $_POST['title'] : '';
+    $date = isset($_POST['date']) ? $_POST['date'] : '';
+    $time = isset($_POST['time']) ? $_POST['time'] : '';
+    $content = isset($_POST['content']) ? $_POST['content'] : '';
+    $topic = isset($_POST['topic']) ? (int)$_POST['topic'] : 0;
 
-            if (isset($id)) {
-                $id = (int) $id; // Ensure $id is an integer
-                $entry_query = mysqli_query($conn, "SELECT * FROM blog WHERE id=$id");
-                $entry = mysqli_fetch_array($entry_query);
-                if ($user['id'] == $entry['author']) {
-                    $validated = true;
-                    mysqli_query($conn, "UPDATE blog SET type=$topic, posted_date='$date', posted_time='$time', title='$title', content='$content' WHERE id=$id");
-                    echo mysqli_error($conn);
-                }
-            } else {
+    $validated = false;
+
+    // Basic validation
+    if ($login !== '' && $password !== '') {
+        $stmt = mysqli_prepare($conn, "SELECT id, login, password FROM blog_users WHERE login = ? OR email = ? LIMIT 1");
+        mysqli_stmt_bind_param($stmt, 'ss', $login, $login);
+        mysqli_stmt_execute($stmt);
+        $res = mysqli_stmt_get_result($stmt);
+        if ($user = mysqli_fetch_assoc($res)) {
+            $stored = $user['password'];
+            // Prefer password_verify; allow legacy md5 and rehash immediately
+            if (password_verify($password, $stored)) {
                 $validated = true;
-                mysqli_query($conn, "INSERT INTO blog (author, type, posted_date, posted_time, title, content) VALUES ({$user['id']}, $topic, '$date', '$time', '$title', '$content')");
+                // Rehash if needed
+                if (password_needs_rehash($stored, PASSWORD_DEFAULT)) {
+                    $newHash = password_hash($password, PASSWORD_DEFAULT);
+                    $up = mysqli_prepare($conn, "UPDATE blog_users SET password = ? WHERE id = ?");
+                    mysqli_stmt_bind_param($up, 'si', $newHash, $user['id']);
+                    mysqli_stmt_execute($up);
+                }
+            } elseif (md5($password) === $stored) {
+                // Legacy md5 match: rehash to modern algorithm
+                $validated = true;
+                $newHash = password_hash($password, PASSWORD_DEFAULT);
+                $up = mysqli_prepare($conn, "UPDATE blog_users SET password = ? WHERE id = ?");
+                mysqli_stmt_bind_param($up, 'si', $newHash, $user['id']);
+                mysqli_stmt_execute($up);
+            }
+
+            if ($validated) {
+                $title = trim($title);
+                $content = trim($content);
+                $date = trim($date);
+                $time = trim($time);
+
+                if ($id) {
+                    // Update existing entry if user is the author
+                    $stmtE = mysqli_prepare($conn, "SELECT author FROM blog WHERE id = ? LIMIT 1");
+                    mysqli_stmt_bind_param($stmtE, 'i', $id);
+                    mysqli_stmt_execute($stmtE);
+                    $rE = mysqli_stmt_get_result($stmtE);
+                    $entry = mysqli_fetch_assoc($rE);
+                    if ($entry && $entry['author'] == $user['id']) {
+                        $up2 = mysqli_prepare($conn, "UPDATE blog SET type = ?, posted_date = ?, posted_time = ?, title = ?, content = ? WHERE id = ?");
+                        mysqli_stmt_bind_param($up2, 'issssi', $topic, $date, $time, $title, $content, $id);
+                        mysqli_stmt_execute($up2);
+                    } else {
+                        $validated = false; // Not allowed to update
+                    }
+                } else {
+                    $ins = mysqli_prepare($conn, "INSERT INTO blog (author, type, posted_date, posted_time, title, content) VALUES (?, ?, ?, ?, ?, ?)");
+                    mysqli_stmt_bind_param($ins, 'iissss', $user['id'], $topic, $date, $time, $title, $content);
+                    mysqli_stmt_execute($ins);
+                }
             }
         }
     }
