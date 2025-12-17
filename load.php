@@ -1,105 +1,89 @@
 <?php include("setup.php"); ?>
 <?php
-$id = $_GET['id'];
-$cell = $_GET['cell'];
+// This endpoint returns structured JSON instead of emitting executable JS.
+header('Content-Type: application/json; charset=utf-8');
+
+$id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+$cell = isset($_GET['cell']) ? $_GET['cell'] : '';
+
+if ($id <= 0) {
+    echo json_encode(['error' => 'invalid_id']);
+    exit;
+}
+
 $conn = db_connect();
-if (!empty($id) && !empty($cell))
-{
-    $archive_query = mysqli_query($conn, "SELECT * FROM blog WHERE id=$id");
-    $test = mysqli_fetch_array($archive_query);
-    $archive_query = mysqli_query($conn, "SELECT * FROM blog WHERE type={$test['type']} AND posted_date='{$test['posted_date']}'");
-    $setup_query = mysqli_query($conn, "SELECT * FROM blog_setup WHERE id={$test['type']}");
-    $setup = mysqli_fetch_array($setup_query);
-    $count = 0;
-?>
-<script language="javascript" type="text/javascript">
-if (parent.frames[1].current == '<?=$cell?>')
-{
-    var doc = parent.frames[1].document;
-    var cell = doc.getElementById("<?=$cell?>");
-    var content = cell.appendChild(doc.createElement("div"));
-    content.style.position = "absolute";
-    content.style.font = "12px Arial, Helvetica, sans-serif";
-    content.style.color = "#FFF";
-    content.style.left = "17px";
-    content.style.top = "20px";
-    content.style.width = "225px";
-    content.style.height = "220px";
-    content.style.cursor = "default";
-    content.style.visibility = "hidden";
-    content.style.border = "0px #FFF solid";
 
-<?php
-    while ($archive = mysqli_fetch_array($archive_query))
-    {
-        $count++;
-        $para_array = explode("\r\n", addslashes($archive['content']));
-        for($j = 0; $j < count($para_array); $j++)
-        {
-            if ($para_array[$j][0] == "<")
-            {
-                $match_string = $para_array[$j];
-                preg_match_all("/(<([^<>]+)\|([^<>]+)>)+([^<>]*)/", $match_string, $address_array);
-                $non_address = $address_array[4];
-                $display_address = $address_array[2];
-                $url_address = $address_array[3];
-            }
-            else
-            {
-                preg_match_all("/([^<>]+)(<([^<>]+)\|([^<>]+)>)*/", $para_array[$j], $address_array);
-                $non_address = $address_array[1];
-                $display_address = $address_array[3];
-                $url_address = $address_array[4];
-            }
+// Fetch the requested entry
+$stmt = mysqli_prepare($conn, "SELECT * FROM blog WHERE id = ? LIMIT 1");
+mysqli_stmt_bind_param($stmt, 'i', $id);
+mysqli_stmt_execute($stmt);
+$res = mysqli_stmt_get_result($stmt);
+$entry = mysqli_fetch_assoc($res);
 
-            echo "para = content.appendChild(doc.createElement('p'));\n";
-            echo "para.style.lineHeight = \"18px\";\n";
-            echo "para.style.color = \"#FFF\";\n";
-            echo "para.style.marginTop = \"0px\";\n";
-            echo "para.style.marginBottom = \"10px\";\n";
-            echo "para.style.textAlign = \"justify\";\n";
-            echo "para.style.textJustify = \"distribute\";\n";
-            echo "para.style.wordBreak = \"break-all\";\n";
-            echo "para.style.wordWrap = \"break-word\";\n";
+if (!$entry) {
+    echo json_encode(['error' => 'not_found']);
+    exit;
+}
 
-            for($i = 0; $i < count($non_address); $i++)
-            {
-                if ($non_address[$i] != "")
-                    echo "para.appendChild(doc.createTextNode('{$non_address[$i]}'));\n";
-                if ($display_address[$i] != "")
-                {
+// Fetch sibling entries (same type and date)
+$stmt2 = mysqli_prepare($conn, "SELECT * FROM blog WHERE type = ? AND posted_date = ? ORDER BY id");
+mysqli_stmt_bind_param($stmt2, 'is', $entry['type'], $entry['posted_date']);
+mysqli_stmt_execute($stmt2);
+$res2 = mysqli_stmt_get_result($stmt2);
 
-                    echo "anchor = para.appendChild(doc.createElement('a'));\n";
-                    echo "anchor.href = '{$url_address[$i]}';\n";
-                    echo "anchor.target = '_blank';\n";
-                    echo "img = anchor.appendChild(doc.createElement('img'));\n";
-                    echo "img.src = '{$display_address[$i]}';\n";
-                    echo "img.style.width = '225px';\n";
-                    echo "img.style.height = '220px';\n";
-                    echo "img.style.border = '0px';\n";
-                    echo "img.style.margin = '0px';\n";
+$paragraphs = [];
 
+while ($row = mysqli_fetch_assoc($res2)) {
+    // Split content into paragraphs by CRLF or LF
+    $paras = preg_split('/\r?\n/', $row['content']);
+    $paraObjs = [];
+    foreach ($paras as $p) {
+        $p = trim($p);
+        if ($p === '')
+            continue;
+        $obj = ['text' => '', 'images' => []];
+
+        // Find patterns like <display|url>
+        $pattern = '/<([^\|>]+)\|([^>]+)>/';
+        $matches = [];
+        preg_match_all($pattern, $p, $matches, PREG_SET_ORDER);
+
+        if ($matches) {
+            // Remove the image tags from text
+            $text = preg_replace($pattern, '', $p);
+            $obj['text'] = $text;
+            foreach ($matches as $m) {
+                $display = $m[1];
+                $url = $m[2];
+                // Basic URL validation
+                if (filter_var($url, FILTER_VALIDATE_URL) === false) {
+                    // try to allow relative URLs
+                    $url = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
                 }
+                $obj['images'][] = ['display' => $display, 'url' => $url];
             }
+        } else {
+            $obj['text'] = $p;
         }
+
+        $paraObjs[] = $obj;
     }
-?>
-    var topmargin = cell.appendChild(doc.createElement("div"));
-    var botmargin = cell.appendChild(doc.createElement("div"));
 
-    topmargin.style.backgroundColor = cell.style.backgroundColor;
-    topmargin.style.position = "absolute";
-    topmargin.style.height = "20px";
-    topmargin.style.width = "259px";
-    topmargin.style.top = "0px";
+    $paragraphs[] = ['id' => (int) $row['id'], 'title' => $row['title'], 'paras' => $paraObjs];
+}
 
-    botmargin.style.backgroundColor = cell.style.backgroundColor;
-    botmargin.style.position = "absolute";
-    botmargin.style.height = "20px";
-    botmargin.style.width = "259px";
-    botmargin.style.top = "241px";
-}
-</script>
-<?php
-}
+$setup_stmt = mysqli_prepare($conn, "SELECT * FROM blog_setup WHERE id = ? LIMIT 1");
+mysqli_stmt_bind_param($setup_stmt, 'i', $entry['type']);
+mysqli_stmt_execute($setup_stmt);
+$setup_res = mysqli_stmt_get_result($setup_stmt);
+$setup = mysqli_fetch_assoc($setup_res);
+
+$out = [
+    'cell' => $cell,
+    'type' => $entry['type'],
+    'setup' => $setup,
+    'entries' => $paragraphs
+];
+
+echo json_encode($out, JSON_UNESCAPED_UNICODE);
 ?>
