@@ -105,7 +105,7 @@ CREATE TABLE `blog_users` (
 --
 
 INSERT INTO `blog_users` (`id`, `email`, `login`, `password`) VALUES
-(1, '88688386@qq.com', 'BrandManager', '5866c4ab258a8ef25e809153cc4faf25');
+(1, '@', '', '5866c4ab258a8ef25e809153cc4faf25');
 
 --
 -- 转储表的索引
