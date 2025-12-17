@@ -4,8 +4,8 @@ function db_connect()
     // Read DB credentials from environment variables or fall back to defaults.
     $db_host = getenv('DB_HOST') ?: 'localhost';
     $db_user = getenv('DB_USER') ?: 'subject';
-    $db_pass = getenv('DB_PASS') ?: 'passMYSQL@2020';
-    $db_name = getenv('DB_NAME') ?: 'subject2004';
+    $db_pass = getenv('DB_PASS') ?: '@subject';
+    $db_name = getenv('DB_NAME') ?: 'subject';
 
     $conn = mysqli_connect($db_host, $db_user, $db_pass, $db_name);
     if (mysqli_connect_errno()) {
