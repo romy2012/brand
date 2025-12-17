@@ -2,144 +2,160 @@
 <!doctype html>
 <html lang="zh-cmn-Hans">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<title>品牌走廊</title>
-	<style>
-		body {
-			margin: 0px;
-			background-color: #FFF;
-			font: 12px Arial, Helvetica, sans-serif;
-			padding: 0;
-		}
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <title>品牌走廊</title>
+        <style>
+                :root {
+                        font-size: 62.5%;
+                }
 
-		.normal {
-			font: 12px Arial, Helvetica, sans-serif;
-		}
+                body {
+                        margin: 0;
+                        background-color: #FFF;
+                        font: 1.2rem Arial, Helvetica, sans-serif;
+                        padding: 0;
+                        overflow-x: auto;
+                }
 
-		.small {
-			font: 12px Arial, Helvetica, sans-serif;
-		}
+                .page {
+                        position: relative;
+                        min-height: 100vh;
+                        padding: 1.6rem;
+                        box-sizing: border-box;
+                        overflow-x: auto;
+                }
 
-		.smallbold {
-			font: bold 12px Arial, Helvetica, sans-serif;
-		}
+                .normal {
+                        font: 1.2rem Arial, Helvetica, sans-serif;
+                }
 
-		.dynamic {
-			position: absolute;
-		}
+                .small {
+                        font: 1.2rem Arial, Helvetica, sans-serif;
+                }
 
-		#root {
-			top: 99px;
-			left: 99px;
-			background: transparent url('images/bg.gif');
-			width: 100%;
-			height: 300px;
-		}
+                .smallbold {
+                        font: bold 1.2rem Arial, Helvetica, sans-serif;
+                }
 
-		#content {
-			position: absolute;
-			color: #FFF;
-			width: 240px;
-			padding: 5px;
-			left: -250px
-		}
+                .dynamic {
+                        position: absolute;
+                }
 
-		#titlebar {
-			position: absolute;
-			background-color: #999;
-			color: #FFF;
-			top: -100px;
-			padding: 5px;
-			width: 240px
-		}
+                #root {
+                        top: 9.9rem;
+                        left: 9.9rem;
+                        background: transparent url('images/bg.gif');
+                        width: 100%;
+                        height: 300px;
+                        max-width: 100%;
+                        overflow: auto;
+                }
 
-		#close {
-			top: -100px;
-			line-height: 11px;
-		}
+                #content {
+                        position: absolute;
+                        color: #FFF;
+                        width: 24rem;
+                        padding: 0.5rem;
+                        left: -25rem;
+                }
 
-		#close img {
+                #titlebar {
+                        position: absolute;
+                        background-color: #999;
+                        color: #FFF;
+                        top: -10rem;
+                        padding: 0.5rem;
+                        width: 24rem;
+                }
+
+                #close {
+                        top: -10rem;
+                        line-height: 1.1rem;
+                }
+
+                #close img {
 			vertical-align: middle;
 		}
 
-		#top {
-			left: 0px;
-			top: -1px;
-			height: 1px;
-			width: 100%;
-			border-top: 1px #CCC solid;
+                #top {
+                        left: 0px;
+                        top: -1px;
+                        height: 0.1rem;
+                        width: 100%;
+                        border-top: 1px #CCC solid;
+                }
+
+                #bottom {
+                        left: 0px;
+                        top: -1px;
+                        height: 0.1rem;
+                        width: 100%;
+                        border-top: 1px #CCC solid;
+                }
+
+                #left {
+                        left: -1px;
+                        top: 0px;
+                        height: 1000px;
+                        width: 0.1rem;
+                        border-left: 1px #CCC solid;
+                }
+
+                #right {
+                        left: -1px;
+                        top: 0px;
+                        height: 1000px;
+                        width: 0.1rem;
+                        border-left: 1px #CCC solid;
+                }
+
+                #titlediv {
+                        position: absolute;
+                        padding-top: 1rem;
+                        padding-left: 1rem;
+                        line-height: 1.8rem;
+                }
+
+                #typediv {
+                        position: absolute;
+                        padding-top: 0.1rem;
+                        padding-left: 0.3rem;
+                }
+
+                #daydiv {
+                        top: -10rem;
+                        margin-left: -0.1rem;
+                }
+
+                #scrolldiv {
+                        position: absolute;
+                        width: 0.9rem;
+                        height: 5rem;
+                        border: 1px #FFF solid;
+                        visibility: hidden;
+                }
+
+                #loading {
+                        position: absolute;
+                        width: 25rem;
+                        height: 25rem;
+                        vertical-align: 50%;
+                        text-align: center;
+                        visibility: hidden;
 		}
 
-		#bottom {
-			left: 0px;
-			top: -1px;
-			height: 1px;
-			width: 100%;
-			border-top: 1px #CCC solid;
-		}
+                .dyimg {
+                        max-width: 0.7rem;
+                        display: inline-block;
+                }
 
-		#left {
-			left: -1px;
-			top: 0px;
-			height: 1000px;
-			width: 1px;
-			border-left: 1px #CCC solid;
-		}
-
-		#right {
-			left: -1px;
-			top: 0px;
-			height: 1000px;
-			width: 1px;
-			border-left: 1px #CCC solid;
-		}
-
-		#titlediv {
-			position: absolute;
-			padding-top: 10px;
-			padding-left: 10px;
-			line-height: 18px;
-		}
-
-		#typediv {
-			position: absolute;
-			padding-top: 1px;
-			padding-left: 3px;
-		}
-
-		#daydiv {
-			top: -100px;
-			margin-left: -1px;
-		}
-
-		#scrolldiv {
-			position: absolute;
-			width: 9px;
-			height: 50px;
-			border: 1px #FFF solid;
-			visibility: hidden;
-		}
-
-		#loading {
-			position: absolute;
-			width: 250px;
-			height: 250px;
-			vertical-align: 50%;
-			text-align: center;
-			visibility: hidden;
-		}
-
-		.dyimg {
-			max-width: 7px;
-			display: inline-block;
-		}
-
-		.dyimg>span {
-			display: inline-block;
-			height: 7px;
-			width: 7px;
-			float: left;
-		}
+                .dyimg>span {
+                        display: inline-block;
+                        height: 0.7rem;
+                        width: 0.7rem;
+                        float: left;
+                }
 
 		.dyimg>span>img {
 			vertical-align: middle;
@@ -156,26 +172,68 @@
 			height: 100%;
 		}
 
-		.dynamic>div>p {
-			display: flex;
+                .dynamic>div>p {
+                        display: flex;
 			flex-direction: row;
 			flex-wrap: nowrap;
 			justify-content: center;
-			align-items: center;
-			align-content: stretch;
-			margin-bottom: 0 !important;
-		}
+                        align-items: center;
+                        align-content: stretch;
+                        margin-bottom: 0 !important;
+                }
 
-		.dynamic>div>p>a>img {
-			vertical-align: middle;
-		}
-	</style>
+                .dynamic>div>p>a>img {
+                        vertical-align: middle;
+                }
+
+                img {
+                        max-width: 100%;
+                        height: auto;
+                }
+
+                @media (max-width: 768px) {
+                        :root {
+                                font-size: 56.25%;
+                        }
+
+                        body {
+                                overflow-x: hidden;
+                        }
+
+                        .page {
+                                padding: 1.2rem;
+                        }
+
+                        #root {
+                                position: relative;
+                                left: 0;
+                                top: 6rem;
+                                transform: scale(0.9);
+                                transform-origin: top left;
+                        }
+
+                        #titlediv,
+                        #typediv,
+                        #daydiv,
+                        #close {
+                                left: 0;
+                                right: 0;
+                        }
+
+                        #titlebar,
+                        #content {
+                                width: 100%;
+                                box-sizing: border-box;
+                        }
+                }
+        </style>
 </head>
 
 <body>
-	<div id="titlediv" class="smallbold"></div>
-	<div id="root" class="dynamic">
-		<?php
+        <div class="page">
+                <div id="titlediv" class="smallbold"></div>
+                <div id="root" class="dynamic">
+                <?php
 
 		$conn = db_connect();
 		$day_count = 0;
@@ -283,12 +341,15 @@
 		<div id="scrolldiv"
 			onMouseOver="this.style.backgroundColor = colors['light'][getj(current)];document.getElementById(current).onmouseover();"
 			onMouseOut="scrolldiv.style.backgroundColor='';unselect()"></div>
-		<div id="loading" onMouseOver="document.getElementById(current).onmouseover();" onMouseOut="unselect()">
-			<div class="loadingtxt"><span>正在载入…</span></div>
-		</div>
+                <div id="loading" onMouseOver="document.getElementById(current).onmouseover();" onMouseOut="unselect()">
+                        <div class="loadingtxt"><span>正在载入…</span></div>
+                </div>
 
-		<script type="text/javascript">
-			var busy = false, current = "none";
+                </div>
+        </div>
+
+        <script type="text/javascript">
+                        var busy = false, current = "none";
 			var root, topdiv, bottom, left, right;
 			var curr_type, type_array, typediv, titlediv;
 			var curr_day, daydiv;
